@@ -1,0 +1,12 @@
+{
+  "name": "lighthouse-plugin-arnold-diy",
+  "version": "0.0.2",
+  "main": "plugin.js",
+  "repository": "https://github.com/arnoldczhang/lighthouse-plugin-arnold-diy.git",
+  "peerDependencies": {
+    "lighthouse": "^5.6.0"
+  },
+  "devDependencies": {
+    "lighthouse": "^5.6.0"
+  }
+}
