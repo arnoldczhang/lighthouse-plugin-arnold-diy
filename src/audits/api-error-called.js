@@ -1,12 +1,14 @@
 const { Audit } = require('lighthouse');
 const { getApiCalledMap } = require('../utils');
 
-class ApiMethodCalledAudit extends Audit {
+class ApiErrorCalledAudit extends Audit {
   static get meta() {
     return {
-      id: 'api-method-called',
-      title: 'API方法调用情况',
-      description: '以页面为维度了解API方法调用的情况。',
+      id: 'api-error-called',
+      title: 'API异常调用情况',
+      description: `小程序运行过程中如果发生了JSAPI 调用异常，
+        可能会影响小程序正常业务流程，甚至导致出现白屏等现象，
+        建议根据报错信息分析报错原因，查看是否存在参数错误、无权调用等情况。`,
       requiredArtifacts: [
         'devtoolsLogs',
       ],
@@ -21,16 +23,6 @@ class ApiMethodCalledAudit extends Audit {
         text: '名称',
       },
       {
-        key: 'param',
-        itemType: 'code',
-        text: '入参',
-      },
-      {
-        key: 'result',
-        itemType: 'code',
-        text: '返回结果',
-      },
-      {
         key: 'count',
         itemType: 'numeric',
         text: '调用量',
@@ -39,22 +31,19 @@ class ApiMethodCalledAudit extends Audit {
   }
 
   static audit(artifacts) {
-    const { method: result } = getApiCalledMap(artifacts);
+    const { errorMethod: result } = getApiCalledMap(artifacts);
     const keys = Object.keys(result);
     const { length } = keys;
     return {
-      score: 1,
-      displayValue: `共找到 ${length} 次API方法调用`,
+      score: Math.max(1 - length * 0.1, 0),
+      displayValue: `共找到 ${length} 次API异常调用`,
       details: {
         type: 'table',
-        headings: ApiMethodCalledAudit.getHeadings(),
+        headings: ApiErrorCalledAudit.getHeadings(),
         items: keys.reduce((res, key) => {
-          const { count } = result[key];
           res.push({
             api: key,
-            param: '{}',
-            result: '{}',
-            count,
+            count: result[key].count,
           });
           return res;
         }, []),
@@ -63,4 +52,4 @@ class ApiMethodCalledAudit extends Audit {
   }
 }
 
-module.exports = ApiMethodCalledAudit;
+module.exports = ApiErrorCalledAudit;

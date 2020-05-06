@@ -1,12 +1,13 @@
 const { Audit } = require('lighthouse');
 const { getApiCalledMap } = require('../utils');
+const { SyncRE } = require('../re');
 
-class ApiMethodCalledAudit extends Audit {
+class ApiSyncCalledAudit extends Audit {
   static get meta() {
     return {
-      id: 'api-method-called',
-      title: 'API方法调用情况',
-      description: '以页面为维度了解API方法调用的情况。',
+      id: 'api-sync-called',
+      title: 'API同步方法调用情况',
+      description: '同步调用耗时过长会阻塞线程小程序的整个流程，因此建议尽量避免同步调用，并控制调用次数。',
       requiredArtifacts: [
         'devtoolsLogs',
       ],
@@ -21,16 +22,6 @@ class ApiMethodCalledAudit extends Audit {
         text: '名称',
       },
       {
-        key: 'param',
-        itemType: 'code',
-        text: '入参',
-      },
-      {
-        key: 'result',
-        itemType: 'code',
-        text: '返回结果',
-      },
-      {
         key: 'count',
         itemType: 'numeric',
         text: '调用量',
@@ -40,20 +31,18 @@ class ApiMethodCalledAudit extends Audit {
 
   static audit(artifacts) {
     const { method: result } = getApiCalledMap(artifacts);
-    const keys = Object.keys(result);
+    const keys = Object.keys(result).filter(key => SyncRE.test(key));
     const { length } = keys;
     return {
-      score: 1,
-      displayValue: `共找到 ${length} 次API方法调用`,
+      score: Math.max(1 - length * 0.1, 0),
+      displayValue: `共找到 ${length} 次API同步方法调用`,
       details: {
         type: 'table',
-        headings: ApiMethodCalledAudit.getHeadings(),
+        headings: ApiSyncCalledAudit.getHeadings(),
         items: keys.reduce((res, key) => {
           const { count } = result[key];
           res.push({
             api: key,
-            param: '{}',
-            result: '{}',
             count,
           });
           return res;
@@ -63,4 +52,4 @@ class ApiMethodCalledAudit extends Audit {
   }
 }
 
-module.exports = ApiMethodCalledAudit;
+module.exports = ApiSyncCalledAudit;

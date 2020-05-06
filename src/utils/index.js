@@ -1,5 +1,7 @@
 const { CONSOLE, METHOD } = require('../const');
 
+const cach = {};
+
 const eq = (v1, v2) => v1 === v2;
 
 const jsonFormat = (
@@ -25,17 +27,26 @@ const valid = (invalid, msg) =>  {
   }
 }
 
+const apiCalledList = [
+  CONSOLE.apiMethodCalled,
+  CONSOLE.apiAttrCalled,
+  CONSOLE.apiErrorMethodCalled,
+];
+
+/**
+ * 统一获取API调用情况
+ * @param {*} artifacts 
+ */
 const getApiCalledMap = (artifacts) => {
+  if (cach.devtoolsLogs) return cach.devtoolsLogs;
   const { devtoolsLogs } = artifacts;
   valid(!type.isObj(devtoolsLogs), '缺少 devtoolsLogs');
 
   const { defaultPass } = devtoolsLogs;
   valid(!type.isObj(defaultPass), '缺少 defaultPass');
 
-  const apiCalledList = [CONSOLE.apiMethodCalled, CONSOLE.apiAttrCalled];
-
   try {
-    return defaultPass.reduce((res, logItem) => {
+    const result = defaultPass.reduce((res, logItem) => {
       if (!eq(logItem.method, METHOD.webSocketFrameSent)) {
         return res;
       }
@@ -48,6 +59,7 @@ const getApiCalledMap = (artifacts) => {
 
       const {
         args: [logType, logApi, logParam, logResult],
+        timestamp,
       } = params;
 
       if (!apiCalledList.includes(logType.value) || !logApi) {
@@ -55,33 +67,59 @@ const getApiCalledMap = (artifacts) => {
       }
 
       const logApiVal = logApi.value;
-      let collection;
+      let logMap;
 
-      // api-method-called
-      if (logType.value === CONSOLE.apiMethodCalled) {
-        collection = res.method;
-        collection[logApiVal] = collection[logApiVal] || { count: 0, param: new Set(), result: new Set() };
-        collection[logApiVal].count += 1;
+      switch(logType.value) {
+        // api-method-called
+        case CONSOLE.apiMethodCalled:
+          logMap = res.method;
+          logMap[logApiVal] = logMap[logApiVal] || {
+            count: 0,
+            param: new Set(),
+            result: new Set(),
+            timestamp: [],
+          };
+          break;
+        // api-attr-called
+        case CONSOLE.apiAttrCalled:
+          logMap = res.attr;
+          logMap[logApiVal] = logMap[logApiVal] || {
+            count: 0,
+            timestamp: [],
+          };
+          break;
+        // api-error-method-called
+        case CONSOLE.apiErrorMethodCalled:
+          logMap = res.errorMethod;
+          logMap[logApiVal] = logMap[logApiVal] || {
+            count: 0,
+            param: new Set(),
+          };
+          break;
+        default:
+          break;
+      }
+
+      if (logMap) {
+        logMap[logApiVal].count += 1;
+        logMap[logApiVal].timestamp.push(timestamp);
   
         if (logParam && logParam.value) {
-          collection[logApiVal].param.add(jsonFormat(logParam.value));
+          logMap[logApiVal].param.add(jsonFormat(logParam.value));
         }
-
+  
         if (logResult && logResult.value) {
-          collection[logApiVal].result.add(jsonFormat(logResult.value));
+          logMap[logApiVal].result.add(jsonFormat(logResult.value));
         }
-
-      // api-attr-called
-      } else {
-        collection = res.attr;
-        collection[logApiVal] = collection[logApiVal] || 0;
-        collection[logApiVal] += 1;
       }
       return res;
     }, {
       method: {},
+      errorMethod: {},
       attr: {},
     });
+    cach.devtoolsLogs = result;
+    return result;
   } catch (err) {
     return {};
   }
