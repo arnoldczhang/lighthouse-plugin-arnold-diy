@@ -1,40 +1,56 @@
 module.exports = {
-    "env": {
-        "node": true
-    },
-    "extends": "eslint:recommended",
-    "rules": {
-        "indent": [                             // 缩进一个tab
-            "error",
-            2
-        ],
-        "linebreak-style": [                    // 语句末尾换行
-            "error",
-            "unix"
-        ],
-        "quotes": [                             // 一律单引号
-            "error",
-            "single"
-        ],
-        "semi": [                               // 语句末尾加分号
-            "error",
-            "always"
-        ],
-        "no-console": 0
-    },
-    "parser": "babel-eslint",
-    "parserOptions": {
-        "sourceType": "module",
-        "allowImportExportEverywhere": false,
-        "codeFrame": false
-    },
+    "extends": [
+      'eslint:recommended',
+      'plugin:vue/recommended',
+    ],
+  
     "globals": {
-        "__DEBUG__": false,
-        "getApp": false,
-        "App": false,
-        "Page": false,
-        "wx": false,
-        "Component":false,
-        "getCurrentPages": false
-    }
-};
+    },
+  
+    plugins: [
+    ],
+  
+    "rules": {
+      "no-param-reassign": [
+        "error",
+        {
+          "props": false
+        }
+      ],
+      "quotes": [
+        2,
+        "single",
+        {
+          "avoidEscape": true,
+          "allowTemplateLiterals": true
+        }
+      ],
+      "import/no-unresolved": [
+        "off"
+      ],
+      "import/prefer-default-export": [
+        "off"
+      ],
+      "no-underscore-dangle": 0,
+      "global-require": 0,
+      "import/extensions": ['off', 'never'],
+      "comma-dangle": [
+        "error",
+        "only-multiline"
+      ],
+      "indent": ["error", 2, { "SwitchCase": 1 }],
+      "class-methods-use-this": 0,
+      "vue/max-attributes-per-line": 0,
+      "object-curly-newline": 0
+    },
+  
+    parserOptions: {
+      parser: '@typescript-eslint/parser',
+      sourceType: 'module',
+      allowImportExportEverywhere: false,
+      ecmaFeatures: {
+        legacyDecorators: true
+      }
+    },
+  };
+  

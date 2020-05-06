@@ -1,23 +1,22 @@
 module.exports = {
-  // Additional audits to run on information Lighthouse gathered.
-  audits: [{ path: 'lighthouse-plugin-arnold-diy/src/audits/has-cat-images.js' }],
+  audits: [
+    { path: 'lighthouse-plugin-arnold-diy/src/audits/api-method-called.js' },
+    { path: 'lighthouse-plugin-arnold-diy/src/audits/api-attr-called.js' },
+  ],
 
-  // A new category in the report for the plugin output.
   category: {
-    title: 'Cats2',
-    description:
-      'When integrated into your website effectively, cats deliver delight and bemusement.',
+    title: '容器',
+    description: '使用模拟器进行小程序及离线包h5性能审核',
     auditRefs: [
-      { id: 'has-cat-images-id', weight: 1, group: 'aa' },
-      {id: "accesskeys", weight: 10},
-      {id: "uses-passive-event-listeners", weight: 1}
+      { id: 'api-method-called', weight: 1, group: 'apiInfo' },
+      { id: 'api-attr-called', weight: 1, group: 'apiInfo' },
     ],
   },
 
   groups: {
-    aa: {
-      title: 'Aa',
-      description: 'abcdefg',
+    apiInfo: {
+      title: 'API调用信息',
+      description: '包含所有API调用情况、单个API调用次数等信息',
     },
   },
 };
